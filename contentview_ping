@@ -1,0 +1,54 @@
+import SwiftUI
+
+struct ContentView: View {
+    @State private var host: String = ""
+    @State private var pingResults: String = ""
+    @State private var errorMessage: String?
+    let pingService = PingService()
+    
+    var body: some View {
+        VStack {
+            TextField("Enter host", text: $host)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .padding()
+            
+            Button("Ping") {
+                ping()
+            }
+            .padding()
+            
+            if let errorMessage = errorMessage {
+                Text(errorMessage)
+                    .foregroundColor(.red)
+            }
+            
+            ScrollView {
+                Text(pingResults)
+            }
+            .padding()
+        }
+        .padding()
+    }
+    
+    private func ping() {
+        errorMessage = nil
+        pingService.ping(host: host) { result in
+            switch result {
+            case .success(let results):
+                DispatchQueue.main.async {
+                    pingResults = results
+                }
+            case .failure(let error):
+                DispatchQueue.main.async {
+                    errorMessage = "Error: \(error.localizedDescription)"
+                }
+            }
+        }
+    }
+}
+
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView()
+    }
+}
